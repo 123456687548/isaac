@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <Psapi.h>
+#include <assert.h>
 #include "util.h"
 
 uintptr_t util::mem::GetModuleBaseAddress(DWORD procId, const char* modName) {
@@ -41,6 +42,9 @@ bool util::mem::Hook(char* src, char* dst, int length) {
 }
 
 char* util::mem::TrampHook(char* src, char* dst, int length) {
+	assert(length >= 5);
+	assert(src != 0);
+	assert(dst != 0);
 	if (length < 5) return nullptr;
 
 	char* gateway = (char*)VirtualAlloc(0, length + 5, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
