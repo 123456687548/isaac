@@ -92,7 +92,6 @@ void cleanup() {
 
 void hookFunctions() {
 	memcpy(oStartStageBytes, (char*)startStageAddress, 10);
-	startStageAddress = NULL;
 	oStartStage = (startStage)util::mem::TrampHook((char*)startStageAddress, (char*)hkStartStage, 10);
 }
 
