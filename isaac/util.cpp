@@ -30,6 +30,22 @@ void util::mem::Patch(BYTE* dst, BYTE* src, unsigned int size) {
 	VirtualProtect(dst, size, oProt, &oProt);
 }
 
+bool util::mem::NOP(BYTE* dst, unsigned int size) {
+	BYTE* nops = (BYTE*) calloc(size, sizeof(BYTE));
+
+	if (nops == nullptr) return false;
+
+	for (BYTE i = 0; i < size; i++) {
+		nops[i] = '\x90';
+	}
+
+	Patch(dst, nops, size);
+
+	free(nops);
+
+	return true;
+}
+
 bool util::mem::Hook(char* src, char* dst, int length) {
 	if (length < 5) return false;
 	DWORD oProt;
@@ -39,6 +55,7 @@ bool util::mem::Hook(char* src, char* dst, int length) {
 	*src = (char)0xE9;
 	*(uintptr_t*)(src + 1) = (uintptr_t)relAddy;
 	VirtualProtect(src, length, oProt, &oProt);
+	return true;
 }
 
 char* util::mem::TrampHook(char* src, char* dst, int length) {
@@ -61,6 +78,11 @@ char* util::mem::TrampHook(char* src, char* dst, int length) {
 	else {
 		return nullptr;
 	}
+}
+
+
+DWORD util::mem::patternScanNew(const char* module, const char* pattern, const char* mask) {
+	return patternScanNew(module, pattern, mask, 0);
 }
 
 DWORD util::mem::patternScanNew(const char* module, const char* pattern, const char* mask, int offset) {
@@ -94,4 +116,32 @@ DWORD util::mem::patternScanNew(const char* module, const char* pattern, const c
 		}
 		return NULL;
 	}
+
+	return NULL;
+}
+
+void util::mem::PlaceJMP(BYTE* Address, DWORD jumpTo, DWORD length) {
+	DWORD dwOldProtect, dwBkup, dwRelAddr;
+
+	//give that address read and write permissions and store the old permissions at oldProtection
+	VirtualProtect(Address, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+
+	// Calculate the "distance" we're gonna have to jump - the size of the JMP instruction
+	dwRelAddr = (DWORD)(jumpTo - (DWORD)Address) - 5;
+
+	// Write the JMP opcode @ our jump position...
+	*Address = 0xE9;
+
+	// Write the offset to where we're gonna jump
+	//The instruction will then become JMP ff002123 for example
+	*((DWORD*)(Address + 0x1)) = dwRelAddr;
+
+	// Overwrite the rest of the bytes with NOPs
+	//ensuring no instruction is Half overwritten(To prevent any crashes)
+	for (DWORD x = 0x5; x < length; x++) {
+		*(Address + x) = 0x90;
+	}
+
+	// Restore the default permissions
+	VirtualProtect(Address, length, dwOldProtect, &dwBkup);
 }
