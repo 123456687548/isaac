@@ -28,7 +28,7 @@ uintptr_t startStageAddress;
 uintptr_t blindCursePatchLocation;
 
 BYTE oDebugConsoleCheckBytes[2];
-uintptr_t debugConsoleCheckAddress;
+uintptr_t canUnlockAchivementsAddress;
 bool unlockConsole = false;
 
 uintptr_t debugConsoleKeyEventAddress;
@@ -72,17 +72,19 @@ DWORD WINAPI dllThread(HMODULE hModule) {
 		if (GetAsyncKeyState(VK_F1) & 1) {
 			unlockConsole = !unlockConsole;
 			if (unlockConsole) {
-				util::mem::Patch((BYTE*)debugConsoleCheckAddress, (BYTE*)"\x74", 1);
+				//util::mem::Patch((BYTE*)canUnlockAchivementsAddress, (BYTE*)"\x74", 1);
 				util::mem::Patch((BYTE*)debugConsoleKeyEventAddress, (BYTE*)"\x0F\x85", 2);
 			}
 			else {
-				util::mem::Patch((BYTE*)debugConsoleCheckAddress, (BYTE*)"\x75", 1);
+				//util::mem::Patch((BYTE*)canUnlockAchivementsAddress, (BYTE*)"\x75", 1);
 				util::mem::Patch((BYTE*)debugConsoleKeyEventAddress, (BYTE*)"\x0F\x84", 2);
 			}
+
+			std::cout << "Can get Achivements: " << std::dec << !unlockConsole << std::endl;
 		}
 		if (GetAsyncKeyState(VK_F2) & 1) {
-			memcpy(oDebugConsoleAchivementCheckBytes, (char*)debugConsoleAchivementCheckAddress, 6);
-			util::mem::PlaceJMP((BYTE*)debugConsoleAchivementCheckAddress, (DWORD)hkDebugConsoleAchivementCheck, 0x6);
+			//memcpy(oDebugConsoleAchivementCheckBytes, (char*)debugConsoleAchivementCheckAddress, 6);
+			//util::mem::PlaceJMP((BYTE*)debugConsoleAchivementCheckAddress, (DWORD)hkDebugConsoleAchivementCheck, 0x6);
 		}
 			
 		if (GetAsyncKeyState(VK_INSERT) & 1) {
@@ -131,14 +133,14 @@ void startup() {
 
 	startStageAddress = (uintptr_t)util::mem::patternScanNew(szIsaacModule, "\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xD9\x89\x5D\xE4\x8B\x00\x00\x00\x00\x00\x89\x4D\xE0", "xxxxxxxxxxxxxxx?????xxx", -0x1F);
 	blindCursePatchLocation = startStageAddress + 0x60A;
-	debugConsoleCheckAddress = (uintptr_t)util::mem::patternScanNew(szIsaacModule, "\x80\xBE\xDD\x86\x02\x00\x00\x75\x09\x32\xC0\x5E\x8B\xE5\x5D\xC2\x04\x00", "xxxxxxxxxxxxxxxxxx", 0x7);
+	canUnlockAchivementsAddress = (uintptr_t)util::mem::patternScanNew(szIsaacModule, "\x80\xBE\xDD\x86\x02\x00\x00\x74\x35\x80\x7D\x08\x00", "xxxxxxxxxxxxx", 0);
 	debugConsoleKeyEventAddress = (uintptr_t)util::mem::patternScanNew(szIsaacModule, "\x0F\x84\x00\x00\x00\x00\x83\x38\x02\x75\x21", "xx????xxxxx");
-	debugConsoleAchivementCheckAddress = (uintptr_t)util::mem::patternScanNew(szIsaacModule, "\x8D\x91\x04\x8A\x06\x00\x8A\x81\xDD\x86\x02\x00\xF3\x0F\x10", "xxxxxxxxxxxxxxx", 0x6);
-	debugConsoleAchivementCheckAddressRet = debugConsoleAchivementCheckAddress + 0x6;
+	//debugConsoleAchivementCheckAddress = (uintptr_t)util::mem::patternScanNew(szIsaacModule, "\x8D\x91\x04\x8A\x06\x00\x8A\x81\xDD\x86\x02\x00\xF3\x0F\x10", "xxxxxxxxxxxxxxx", 0x6);
+	//debugConsoleAchivementCheckAddressRet = debugConsoleAchivementCheckAddress + 0x6;
 
 	std::cout << "startStageAddress: 0x" << std::hex << startStageAddress << std::endl;
 	std::cout << "blindCursePatchLocation: 0x" << std::hex << blindCursePatchLocation << std::endl;
-	std::cout << "debugConsoleCheckAddress: 0x" << std::hex << debugConsoleCheckAddress << std::endl;
+	std::cout << "debugConsoleCheckAddress: 0x" << std::hex << canUnlockAchivementsAddress << std::endl;
 	std::cout << "debugConsoleKeyEventAddress: 0x" << std::hex << debugConsoleKeyEventAddress << std::endl;
 	std::cout << "debugConsoleAchivementCheckAddress: 0x" << std::hex << debugConsoleAchivementCheckAddress << std::endl;
 	std::cout << "hkDebugConsoleAchivementCheck: 0x" << std::hex << hkDebugConsoleAchivementCheck << std::endl;
