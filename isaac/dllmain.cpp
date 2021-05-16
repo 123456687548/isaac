@@ -63,7 +63,7 @@ DWORD WINAPI dllThread(HMODULE hModule) {
 			}
 		}
 
-		if (GetAsyncKeyState(VK_DELETE) & 1) {
+		if (GetAsyncKeyState(VK_DELETE) & 1 && init) {
 			if ((*curse & ECurseType::LABYRINTH) != ECurseType::LABYRINTH) {
 				*curse = 0;
 			}
